@@ -11,6 +11,7 @@ ARDUINO_PORT = f"/dev/{config('ARDUINO_PORT')}"
 RABBITMQ_HOST = config("RABBITMQ_HOST")
 RABBITMQ_USER = config("RABBITMQ_USER")
 RABBITMQ_PASSWORD = config("RABBITMQ_PASSWORD")
+MONITOR_SERIAL_NUMBER = config("MONITOR_SERIAL_NUMBER")
 
 RABBIT_SCHEMA = {
     "name": "babyWatcher",
@@ -37,9 +38,13 @@ def main():
                 if port.in_waiting > 0:
                     line = port.readline().decode("utf-8").rstrip()
                     data_json = json.loads(line)
-                    data_string = json.dumps(data_json)
 
-                    rabbit.send("babyWatcher", "new.data", data_string)
+                    body = {
+                        "monitorId": MONITOR_SERIAL_NUMBER,
+                        "body": addTimestamp(data_json),
+                    }
+
+                    rabbit.send("babyWatcher", "new.data", json.dumps(body))
         except (AMQPConnectionError, ChannelClosedByBroker, ConnectionClosed) as e:
             print("Error with RabbitMQ connection. Trying to reconnect...")
             continue

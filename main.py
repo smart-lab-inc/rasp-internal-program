@@ -37,11 +37,11 @@ def main():
             while True:
                 if port.in_waiting > 0:
                     line = port.readline().decode("utf-8").rstrip()
-                    data_json = json.loads(line)
+                    data_dict = json.loads(line)
 
                     body = {
                         "monitorId": MONITOR_SERIAL_NUMBER,
-                        "body": addTimestamp(data_json),
+                        "body": addTimestamp(data_dict),
                     }
 
                     rabbit.send("babyWatcher", "new.data", json.dumps(body))

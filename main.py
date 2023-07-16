@@ -1,5 +1,10 @@
+from typing import List
 import serial
 from rabbitmq import RabbitMQ
+import json
+from datetime import datetime
+from pika.exceptions import AMQPConnectionError, ChannelClosedByBroker, ConnectionClosed
+
 
 ARDUINO_PORT = "/dev/ttyUSB0"
 RABBITMQ_URL = "54.243.203.221"
@@ -16,19 +21,41 @@ RABBIT_SCHEMA = {
 
 
 def main():
-    rabbit = RabbitMQ(
-        RABBITMQ_URL, RABBITMQ_USER, RABBITMQ_PASSWORD, schema=RABBIT_SCHEMA
-    )
-
-    port = serial.Serial(ARDUINO_PORT, 9600)
-    port.flush()
+    rabbit = None
 
     while True:
-        if port.in_waiting > 0:
-            line = port.readline().decode("utf-8").rstrip()
+        try:
+            rabbit = RabbitMQ(
+                RABBITMQ_URL, RABBITMQ_USER, RABBITMQ_PASSWORD, schema=RABBIT_SCHEMA
+            )
 
-            # TODO: Improve hardcoded data
-            rabbit.send("babyWatcher", "new.data", line)
+            port = serial.Serial(ARDUINO_PORT, 9600)
+            port.flush()
+
+            while True:
+                if port.in_waiting > 0:
+                    line = port.readline().decode("utf-8").rstrip()
+                    data_json = json.loads(line)
+                    data_string = json.dumps(data_json)
+
+                rabbit.send("babyWatcher", "new.data", data_string)
+        except (AMQPConnectionError, ChannelClosedByBroker, ConnectionClosed) as e:
+            print("Error with RabbitMQ connection. Trying to reconnect...")
+            continue
+        except KeyboardInterrupt:
+            print("\nClosing connection...")
+            if rabbit:
+                rabbit.close_connection()
+            break
+
+
+def addTimestamp(items: List[dict]) -> List[dict]:
+    current_datetime = datetime.now()
+
+    for item in items:
+        item["timestamp"] = current_datetime.strftime("%Y-%m-%dT%H:%M:%S.%f")
+
+    return items
 
 
 if __name__ == "__main__":

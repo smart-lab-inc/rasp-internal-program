@@ -26,7 +26,7 @@ class RabbitMQ:
         )
 
     def create_queue(self, name: str):
-        self.channel.queue_declare(queue=name)
+        self.channel.queue_declare(queue=name, durable=True)
 
     def bind_queue(self, exchange: str, queue: str, routing_key: str):
         self.channel.queue_bind(

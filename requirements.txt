@@ -10,5 +10,6 @@ platformdirs==3.6.0
 pycodestyle==2.10.0
 pyflakes==3.0.1
 pyserial==3.5
+python-decouple==3.8
 tomli==2.0.1
 typing_extensions==4.6.3

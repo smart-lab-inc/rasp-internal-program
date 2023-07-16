@@ -39,7 +39,7 @@ def main():
                     data_json = json.loads(line)
                     data_string = json.dumps(data_json)
 
-                rabbit.send("babyWatcher", "new.data", data_string)
+                    rabbit.send("babyWatcher", "new.data", data_string)
         except (AMQPConnectionError, ChannelClosedByBroker, ConnectionClosed) as e:
             print("Error with RabbitMQ connection. Trying to reconnect...")
             continue

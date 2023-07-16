@@ -4,12 +4,13 @@ from rabbitmq import RabbitMQ
 import json
 from datetime import datetime
 from pika.exceptions import AMQPConnectionError, ChannelClosedByBroker, ConnectionClosed
+from decouple import config
 
 
-ARDUINO_PORT = "/dev/ttyUSB0"
-RABBITMQ_URL = "54.243.203.221"
-RABBITMQ_USER = "babyUser"
-RABBITMQ_PASSWORD = "Piloto123"
+ARDUINO_PORT = f"/dev/{config('ARDUINO_PORT')}"
+RABBITMQ_HOST = config("RABBITMQ_HOST")
+RABBITMQ_USER = config("RABBITMQ_USER")
+RABBITMQ_PASSWORD = config("RABBITMQ_PASSWORD")
 
 RABBIT_SCHEMA = {
     "name": "babyWatcher",
@@ -26,7 +27,7 @@ def main():
     while True:
         try:
             rabbit = RabbitMQ(
-                RABBITMQ_URL, RABBITMQ_USER, RABBITMQ_PASSWORD, schema=RABBIT_SCHEMA
+                RABBITMQ_HOST, RABBITMQ_USER, RABBITMQ_PASSWORD, schema=RABBIT_SCHEMA
             )
 
             port = serial.Serial(ARDUINO_PORT, 9600)

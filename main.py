@@ -14,8 +14,6 @@ RABBITMQ_USER = config("RABBITMQ_USER")
 RABBITMQ_PASSWORD = config("RABBITMQ_PASSWORD")
 MONITOR_SERIAL_NUMBER = config("MONITOR_SERIAL_NUMBER")
 
-last_update_time = time.time()
-
 RABBIT_SCHEMA = {
     "name": "babyWatcher",
     "type": "topic",
@@ -27,6 +25,8 @@ RABBIT_SCHEMA = {
 
 def main():
     rabbit = None
+    last_update_time = time.time()
+    is_ready_to_store = False
 
     while True:
         try:
@@ -43,12 +43,19 @@ def main():
 
                     data_dict = json.loads(line)
                     data_dict = add_timestamp_property(data_dict)
-                    data_dict = add_is_ready_to_store_property(data_dict)
 
                     body = {
                         "monitorId": MONITOR_SERIAL_NUMBER,
                         "body": data_dict,
                     }
+
+                    if time.time() - last_update_time >= 60:
+                        is_ready_to_store = True
+                        last_update_time = time.time()
+                    else:
+                        is_ready_to_store = False
+
+                    body["body"]["isReadyToStore"] = is_ready_to_store
 
                     rabbit.send("babyWatcher", "new.data", json.dumps(body))
         except (AMQPConnectionError, ChannelClosedByBroker, ConnectionClosed) as e:
@@ -66,21 +73,6 @@ def add_timestamp_property(items: List[dict]) -> List[dict]:
 
     for item in items:
         item["timestamp"] = current_datetime.strftime("%Y-%m-%dT%H:%M:%S.%f")
-
-    return items
-
-
-def add_is_ready_to_store_property(items) -> List[dict]:
-    current_time = time.time()
-    elapsed_time = current_time - last_update_time
-
-    if elapsed_time >= 60:
-        for item in items:
-            item["isReadyToStore"] = "true"
-        last_update_time = current_time
-    else:
-        for item in items:
-            item["isReadyToStore"] = "false"
 
     return items
 

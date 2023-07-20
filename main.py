@@ -76,11 +76,11 @@ def add_is_ready_to_store_property(items) -> List[dict]:
 
     if elapsed_time >= 60:
         for item in items:
-            item["isReadyToStore"] = True
+            item["isReadyToStore"] = "true"
         last_update_time = current_time
     else:
         for item in items:
-            item["isReadyToStore"] = False
+            item["isReadyToStore"] = "false"
 
     return items
 

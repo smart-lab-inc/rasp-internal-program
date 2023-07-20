@@ -55,7 +55,7 @@ def main():
                     else:
                         is_ready_to_store = False
 
-                    body["body"]["isReadyToStore"] = is_ready_to_store
+                    body["isReadyToStore"] = is_ready_to_store
 
                     rabbit.send("babyWatcher", "new.data", json.dumps(body))
         except (AMQPConnectionError, ChannelClosedByBroker, ConnectionClosed) as e:

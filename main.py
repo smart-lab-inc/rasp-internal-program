@@ -50,10 +50,10 @@ def main():
                     }
 
                     if time.time() - last_update_time >= 60:
-                        is_ready_to_store = True
+                        is_ready_to_store = "true"
                         last_update_time = time.time()
                     else:
-                        is_ready_to_store = False
+                        is_ready_to_store = "false"
 
                     body["isReadyToStore"] = is_ready_to_store
 
